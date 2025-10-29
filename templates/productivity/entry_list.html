@@ -1,0 +1,456 @@
+{% extends 'productivity/base.html' %}
+
+{% block title %}Productivity Entries - Warehouse Productivity{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h2 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    .filter-form {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .form-group select,
+    .form-group input {
+        padding: 0.6rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn {
+        padding: 0.6rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-success {
+        background-color: #27ae60;
+        color: white;
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-success:hover {
+        background-color: #229954;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .entry-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .entry-table thead {
+        background-color: #34495e;
+        color: white;
+    }
+
+    .entry-table th {
+        padding: 1rem 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .entry-table tbody tr {
+        border-bottom: 1px solid #e9ecef;
+        transition: background-color 0.2s;
+    }
+
+    .entry-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .entry-table td {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .editable {
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 0.5rem;
+        min-height: 2rem;
+        cursor: text;
+        transition: all 0.2s;
+    }
+
+    .editable:hover {
+        background-color: #e3f2fd;
+        border-color: #90caf9;
+    }
+
+    .editable:focus {
+        outline: none;
+        background-color: #fff;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .editable.saving {
+        background-color: #fff3cd;
+        border-color: #ffc107;
+    }
+
+    .editable.saved {
+        background-color: #d4edda;
+        border-color: #28a745;
+    }
+
+    .editable.error {
+        background-color: #f8d7da;
+        border-color: #dc3545;
+    }
+
+    .no-entries {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .no-entries svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .save-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+    }
+
+    .save-indicator.saving {
+        background-color: #ffc107;
+        animation: pulse 1s infinite;
+    }
+
+    .save-indicator.saved {
+        background-color: #28a745;
+    }
+
+    .save-indicator.error {
+        background-color: #dc3545;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-readonly {
+        background-color: #e9ecef;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h2>📊 Productivity Entries</h2>
+</div>
+
+<!-- Filter Form -->
+<form method="get" class="filter-form">
+    <div class="form-group">
+        <label for="section">Section</label>
+        <select name="section" id="section">
+            <option value="">All Sections</option>
+            {% for s in sections %}
+                <option value="{{ s.id }}" {% if request.GET.section == s.id|stringformat:"s" %}selected{% endif %}>
+                    {{ s.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="lead">Lead</label>
+        <select name="lead" id="lead">
+            <option value="">All Leads</option>
+            {% for l in leads %}
+                <option value="{{ l.id }}" {% if request.GET.lead == l.id|stringformat:"s" %}selected{% endif %}>
+                    {{ l.username }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Date:
+  <input type="date" name="date" value="{{ request.GET.date|default:today }}">
+</label>
+
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </div>
+</form>
+
+<!-- Entries Table -->
+{% if object_list %}
+<div class="table-container">
+    <table class="entry-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Lead</th>
+                <th>Section</th>
+                <th>Bundle Opening</th>
+                <th>Sorting</th>
+                <th>Loading</th>
+                <th>Sticker</th>
+                <th>Scanning</th>
+                <th>Put Away</th>
+                <th>Picking</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for e in object_list %}
+            <tr id="entry-{{ e.pk }}">
+                <td>{{ e.date|date:"Y-m-d" }}</td>
+                <td>{{ e.lead.username }}</td>
+                <td>{{ e.section.name }}</td>
+                
+                {% if user.role == 'admin' or user.role == 'manager' or user.role == 'lead' %}
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="bundle_opening">{{ e.bundle_opening|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="sorting">{{ e.sorting|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="loading">{{ e.loading|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="sticker">{{ e.sticker|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="scanning">{{ e.scanning|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="put_away">{{ e.put_away|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="picking">{{ e.picking|default:"" }}</td>
+                    <td contenteditable="true" class="editable" data-pk="{{ e.id }}" data-field="remarks">{{ e.remarks|default:"" }}</td>
+                {% else %}
+                    <td><span class="status-badge status-readonly">{{ e.bundle_opening|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.sorting|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.loading|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.sticker|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.scanning|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.put_away|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.picking|default:"-" }}</span></td>
+                    <td><span class="status-badge status-readonly">{{ e.remarks|default:"-" }}</span></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div style="margin-top: 2rem; text-align: center;">
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn btn-primary">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-primary">Previous</a>
+        {% endif %}
+
+        <span style="margin: 0 1rem;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-primary">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-primary">Last</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="no-entries">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 11l3 3L22 4"></path>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+    </svg>
+    <p>No entries found matching your filters.</p>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const editableCells = document.querySelectorAll('.editable');
+    
+    editableCells.forEach(cell => {
+        // Store original value
+        cell.dataset.originalValue = cell.innerText.trim();
+        
+        // Handle blur event (when user clicks away)
+        cell.addEventListener('blur', async (e) => {
+            const td = e.target;
+            const field = td.dataset.field;
+            const pk = td.dataset.pk;
+            const value = td.innerText.trim();
+            const originalValue = td.dataset.originalValue;
+            
+            // If value hasn't changed, don't save
+            if (value === originalValue) {
+                return;
+            }
+            
+            // Visual feedback: saving
+            td.classList.add('saving');
+            
+            try {
+                const formData = new URLSearchParams();
+                formData.append(field, value);
+                
+                const response = await fetch(`/entries/${pk}/update-field/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Remove saving state
+                td.classList.remove('saving');
+                
+                if (data.success) {
+                    // Update original value
+                    td.dataset.originalValue = value;
+                    
+                    // Visual feedback: saved
+                    td.classList.add('saved');
+                    setTimeout(() => {
+                        td.classList.remove('saved');
+                    }, 2000);
+                } else {
+                    // Visual feedback: error
+                    td.classList.add('error');
+                    alert(`⚠️ Save failed: ${data.error || 'Unknown error'}`);
+                    
+                    // Revert to original value
+                    td.innerText = originalValue;
+                    
+                    setTimeout(() => {
+                        td.classList.remove('error');
+                    }, 2000);
+                }
+            } catch (err) {
+                td.classList.remove('saving');
+                td.classList.add('error');
+                alert('⚠️ Save failed: Network error. Please check your connection.');
+                
+                // Revert to original value
+                td.innerText = originalValue;
+                
+                setTimeout(() => {
+                    td.classList.remove('error');
+                }, 2000);
+            }
+        });
+        
+        // Prevent line breaks in contenteditable
+        cell.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                e.target.blur(); // Trigger save
+            }
+        });
+    });
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) {
+            return parts.pop().split(';').shift();
+        }
+        return '';
+    }
+});
+</script>
+
+{% endblock %}

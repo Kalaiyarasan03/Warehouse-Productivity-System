@@ -1,0 +1,311 @@
+{% extends 'productivity/base.html' %}
+
+{% block title %}Dashboard - Warehouse Productivity{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h2 {
+        color: #2c3e50;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-header p {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    .stat-card.blue {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-card.green {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-card.orange {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-card.purple {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stat-card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .stat-card-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid #3498db;
+        display: inline-block;
+    }
+
+    .recent-entries {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .entries-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .entry-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1rem;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+
+    .entry-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .entry-item:last-child {
+        border-bottom: none;
+    }
+
+    .entry-date {
+        background: #3498db;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        min-width: 100px;
+    }
+
+    .entry-details {
+        flex: 1;
+    }
+
+    .entry-lead {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .entry-section {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .entry-remarks {
+        color: #95a5a6;
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    .entry-stats {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .entry-stat-badge {
+        background: #ecf0f1;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .no-entries {
+        text-align: center;
+        padding: 3rem;
+        color: #95a5a6;
+    }
+
+    .no-entries-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action-btn {
+        background: white;
+        border: 2px solid #3498db;
+        color: #3498db;
+        padding: 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .quick-action-btn:hover {
+        background: #3498db;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .entry-item {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .entry-date {
+            width: fit-content;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>📊 Dashboard</h2>
+    <p>Welcome back, <strong>{{ user.username }}</strong>! Here's your warehouse productivity overview.</p>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a href="{% url 'entry_add' %}" class="quick-action-btn">
+        ➕ Add New Entry
+    </a>
+    <a href="{% url 'entry_list' %}" class="quick-action-btn">
+        📋 View All Entries
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-card-icon">📦</div>
+        <div class="stat-card-label">Total Entries</div>
+        <div class="stat-card-value">{{ total_entries|default:0 }}</div>
+    </div>
+
+    <div class="stat-card green">
+        <div class="stat-card-icon">📅</div>
+        <div class="stat-card-label">This Week</div>
+        <div class="stat-card-value">{{ entries_this_week|default:0 }}</div>
+    </div>
+
+    <div class="stat-card orange">
+        <div class="stat-card-icon">🎯</div>
+        <div class="stat-card-label">Today</div>
+        <div class="stat-card-value">{{ entries_today|default:0 }}</div>
+    </div>
+
+    <div class="stat-card purple">
+        <div class="stat-card-icon">👥</div>
+        <div class="stat-card-label">Active Sections</div>
+        <div class="stat-card-value">{{ active_sections|default:0 }}</div>
+    </div>
+</div>
+
+<!-- Recent Entries -->
+<div class="recent-entries">
+    <h3 class="section-title">Recent Entries</h3>
+    
+    {% if entries_recent %}
+    <ul class="entries-list">
+        {% for e in entries_recent %}
+        <li class="entry-item">
+            <div class="entry-date">
+                {{ e.date|date:"M d, Y" }}
+            </div>
+            <div class="entry-details">
+                <div class="entry-lead">👤 {{ e.lead.username }}</div>
+                <div class="entry-section">🏢 {{ e.section.name }}</div>
+                {% if e.remarks %}
+                <div class="entry-remarks">💬 {{ e.remarks|truncatewords:15 }}</div>
+                {% endif %}
+            </div>
+            <div class="entry-stats">
+                {% if e.bundle_opening %}
+                <span class="entry-stat-badge">📦 {{ e.bundle_opening }}</span>
+                {% endif %}
+                {% if e.sorting %}
+                <span class="entry-stat-badge">🔄 {{ e.sorting }}</span>
+                {% endif %}
+                {% if e.scanning %}
+                <span class="entry-stat-badge">📱 {{ e.scanning }}</span>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="no-entries">
+        <div class="no-entries-icon">📭</div>
+        <p>No entries found. Start by adding your first entry!</p>
+        <a href="{% url 'entry_add' %}" class="quick-action-btn" style="margin: 1rem auto; max-width: 200px;">
+            ➕ Add Entry
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

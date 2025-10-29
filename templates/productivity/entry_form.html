@@ -1,0 +1,687 @@
+{% extends 'productivity/base.html' %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Entry - Warehouse Productivity{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .form-header h2 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    .back-link {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.3s;
+    }
+
+    .back-link:hover {
+        color: #2980b9;
+    }
+
+    .entry-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        color: #2c3e50;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #ecf0f1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-group .helptext {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+    }
+
+    .errorlist li {
+        background: #fee;
+        color: #c33;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid #c33;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #ecf0f1;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+
+    .field-icon {
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    .search-results {
+        position: absolute;
+        background: white;
+        border: 2px solid #e1e8ed;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        width: calc(100% - 4px);
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .search-results.active {
+        display: block;
+    }
+
+    .search-result-item {
+        padding: 0.75rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+    }
+
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-result-item.selected {
+        background-color: #e3f2fd;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    #id_lead_search,
+    #id_section_search {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    #id_lead_search:focus,
+    #id_section_search:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Hide the original select dropdowns */
+    #id_lead,
+    #id_section {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0;
+        }
+
+        .entry-form {
+            padding: 1.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h2>
+            {% if object %}
+                ✏️ Edit Productivity Entry
+            {% else %}
+                ➕ Add Productivity Entry
+            {% endif %}
+        </h2>
+        <a href="{% url 'entry_list' %}" class="back-link">
+            ← Back to List
+        </a>
+    </div>
+
+    <form method="post" class="entry-form" novalidate>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="errorlist">
+            {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <span class="field-icon">📋</span>
+                Basic Information
+            </h3>
+
+            <div class="form-group">
+                <label for="id_lead_search" class="required-field">
+                    <span class="field-icon">👤</span>
+                    Lead
+                </label>
+                <input type="text" id="id_lead_search" placeholder="Search for lead..." autocomplete="off">
+                <div id="lead_results" class="search-results"></div>
+                {{ form.lead }}
+                {% if form.lead.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.lead.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_section_search" class="required-field">
+                    <span class="field-icon">🏢</span>
+                    Section
+                </label>
+                <input type="text" id="id_section_search" placeholder="Search for section..." autocomplete="off">
+                <div id="section_results" class="search-results"></div>
+                {{ form.section }}
+                {% if form.section.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.section.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.date.id_for_label }}" class="required-field">
+                    <span class="field-icon">📅</span>
+                    Date
+                </label>
+                {{ form.date }}
+                {% if form.date.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.date.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Productivity Metrics Section -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <span class="field-icon">📊</span>
+                Productivity Metrics
+            </h3>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.bundle_opening.id_for_label }}">
+                        <span class="field-icon">📦</span>
+                        Bundle Opening
+                    </label>
+                    {{ form.bundle_opening }}
+                    {% if form.bundle_opening.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.bundle_opening.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.sorting.id_for_label }}">
+                        <span class="field-icon">🔄</span>
+                        Sorting
+                    </label>
+                    {{ form.sorting }}
+                    {% if form.sorting.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.sorting.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.loading.id_for_label }}">
+                        <span class="field-icon">🚛</span>
+                        Loading
+                    </label>
+                    {{ form.loading }}
+                    {% if form.loading.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.loading.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.sticker.id_for_label }}">
+                        <span class="field-icon">🏷️</span>
+                        Sticker
+                    </label>
+                    {{ form.sticker }}
+                    {% if form.sticker.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.sticker.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.scanning.id_for_label }}">
+                        <span class="field-icon">📱</span>
+                        Scanning
+                    </label>
+                    {{ form.scanning }}
+                    {% if form.scanning.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.scanning.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.put_away.id_for_label }}">
+                        <span class="field-icon">📥</span>
+                        Put Away
+                    </label>
+                    {{ form.put_away }}
+                    {% if form.put_away.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.put_away.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.picking.id_for_label }}">
+                        <span class="field-icon">🎯</span>
+                        Picking
+                    </label>
+                    {{ form.picking }}
+                    {% if form.picking.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.picking.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information Section -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <span class="field-icon">💬</span>
+                Additional Information
+            </h3>
+
+            <div class="form-group">
+                <label for="{{ form.remarks.id_for_label }}">
+                    <span class="field-icon">📝</span>
+                    Remarks
+                </label>
+                {{ form.remarks }}
+                {% if form.remarks.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.remarks.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if form.remarks.help_text %}
+                    <span class="helptext">{{ form.remarks.help_text }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{% url 'entry_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                {% if object %}💾 Update Entry{% else %}➕ Save Entry{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set date to today by default, but allow selection
+    const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+    if (dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+
+    // Lead Search Functionality
+    const leadSearchInput = document.getElementById('id_lead_search');
+    const leadSelect = document.getElementById('id_lead');
+    const leadResults = document.getElementById('lead_results');
+    
+    // Store all lead options
+    const leadOptions = Array.from(leadSelect.options).filter(opt => opt.value).map(opt => ({
+        value: opt.value,
+        text: opt.text
+    }));
+
+    // Set initial value if editing
+    if (leadSelect.value) {
+        const selectedOption = leadOptions.find(opt => opt.value === leadSelect.value);
+        if (selectedOption) {
+            leadSearchInput.value = selectedOption.text;
+        }
+    }
+
+    leadSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            leadResults.classList.remove('active');
+            leadSelect.value = '';
+            return;
+        }
+
+        const filtered = leadOptions.filter(opt => 
+            opt.text.toLowerCase().includes(searchTerm)
+        );
+
+        if (filtered.length > 0) {
+            leadResults.innerHTML = filtered.map(opt => 
+                `<div class="search-result-item" data-value="${opt.value}">${opt.text}</div>`
+            ).join('');
+            leadResults.classList.add('active');
+        } else {
+            leadResults.innerHTML = '<div class="search-result-item">No leads found</div>';
+            leadResults.classList.add('active');
+        }
+    });
+
+    leadResults.addEventListener('click', function(e) {
+        if (e.target.classList.contains('search-result-item') && e.target.dataset.value) {
+            leadSearchInput.value = e.target.textContent;
+            leadSelect.value = e.target.dataset.value;
+            leadResults.classList.remove('active');
+        }
+    });
+
+    // Section Search Functionality
+    const sectionSearchInput = document.getElementById('id_section_search');
+    const sectionSelect = document.getElementById('id_section');
+    const sectionResults = document.getElementById('section_results');
+    
+    // Store all section options
+    const sectionOptions = Array.from(sectionSelect.options).filter(opt => opt.value).map(opt => ({
+        value: opt.value,
+        text: opt.text
+    }));
+
+    // Set initial value if editing
+    if (sectionSelect.value) {
+        const selectedOption = sectionOptions.find(opt => opt.value === sectionSelect.value);
+        if (selectedOption) {
+            sectionSearchInput.value = selectedOption.text;
+        }
+    }
+
+    sectionSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            sectionResults.classList.remove('active');
+            sectionSelect.value = '';
+            return;
+        }
+
+        const filtered = sectionOptions.filter(opt => 
+            opt.text.toLowerCase().includes(searchTerm)
+        );
+
+        if (filtered.length > 0) {
+            sectionResults.innerHTML = filtered.map(opt => 
+                `<div class="search-result-item" data-value="${opt.value}">${opt.text}</div>`
+            ).join('');
+            sectionResults.classList.add('active');
+        } else {
+            sectionResults.innerHTML = '<div class="search-result-item">No sections found</div>';
+            sectionResults.classList.add('active');
+        }
+    });
+
+    sectionResults.addEventListener('click', function(e) {
+        if (e.target.classList.contains('search-result-item') && e.target.dataset.value) {
+            sectionSearchInput.value = e.target.textContent;
+            sectionSelect.value = e.target.dataset.value;
+            sectionResults.classList.remove('active');
+        }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!leadSearchInput.contains(e.target) && !leadResults.contains(e.target)) {
+            leadResults.classList.remove('active');
+        }
+        if (!sectionSearchInput.contains(e.target) && !sectionResults.contains(e.target)) {
+            sectionResults.classList.remove('active');
+        }
+    });
+
+    // Auto-focus first field
+    if (leadSearchInput) {
+        leadSearchInput.focus();
+    }
+
+    // Number input validation - prevent negative values
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    });
+
+    // Form submission validation
+    const form = document.querySelector('.entry-form');
+    form.addEventListener('submit', function(e) {
+        // Validate lead and section are selected
+        if (!leadSelect.value) {
+            e.preventDefault();
+            alert('Please select a Lead');
+            leadSearchInput.focus();
+            leadSearchInput.style.borderColor = '#e74c3c';
+            return false;
+        }
+        
+        if (!sectionSelect.value) {
+            e.preventDefault();
+            alert('Please select a Section');
+            sectionSearchInput.focus();
+            sectionSearchInput.style.borderColor = '#e74c3c';
+            return false;
+        }
+
+        const requiredFields = form.querySelectorAll('[required]');
+        let hasError = false;
+
+        requiredFields.forEach(field => {
+            if (!field.value) {
+                hasError = true;
+                field.style.borderColor = '#e74c3c';
+            } else {
+                field.style.borderColor = '#e1e8ed';
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alert('Please fill in all required fields marked with *');
+            return false;
+        }
+    });
+});
+</script>
+
+{% endblock %}

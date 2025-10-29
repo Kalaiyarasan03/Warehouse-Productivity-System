@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#2c3e50">
+    <title>{% block title %}Warehouse Productivity{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .user-info a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .user-info a:hover {
+            color: #5dade2;
+            text-decoration: underline;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+
+        .nav {
+            background-color: #34495e;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav li {
+            margin: 0;
+        }
+
+        .nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background-color: #2c3e50;
+        }
+
+        .nav a.active {
+            background-color: #3498db;
+        }
+
+        .messages {
+            margin: 1rem 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Tablet Optimization (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 100%;
+                padding: 0 1.5rem;
+            }
+
+            .nav a {
+                padding: 0.9rem 1.2rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Mobile Optimization (max-width: 768px) */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                position: relative;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+                padding-right: 3rem;
+            }
+
+            .user-info {
+                font-size: 0.85rem;
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav ul {
+                flex-direction: column;
+                display: none;
+            }
+
+            .nav ul.active {
+                display: flex;
+            }
+
+            .nav a {
+                padding: 0.9rem 1rem;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .nav li:last-child a {
+                border-bottom: none;
+            }
+
+            .container {
+                margin: 1rem auto;
+                padding: 0 1rem;
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
+
+            .messages {
+                margin: 1rem;
+            }
+
+            .alert {
+                padding: 0.875rem;
+                font-size: 0.9rem;
+            }
+
+            .footer {
+                padding: 1.5rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Small Mobile (max-width: 480px) */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .user-info {
+                font-size: 0.8rem;
+            }
+
+            .nav a {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 0 0.75rem;
+                margin: 0.75rem auto;
+            }
+
+            .content {
+                padding: 1rem;
+                border-radius: 6px;
+            }
+
+            .messages {
+                margin: 0.75rem;
+            }
+
+            .footer {
+                padding: 1rem;
+            }
+        }
+
+        /* Touch-friendly tap targets */
+        @media (hover: none) and (pointer: coarse) {
+            .nav a,
+            .user-info a,
+            button {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .container {
+                margin: 0.75rem auto;
+            }
+        }
+
+        /* Print optimization */
+        @media print {
+            .header,
+            .nav,
+            .footer,
+            .messages {
+                display: none;
+            }
+
+            .container {
+                margin: 0;
+                padding: 0;
+            }
+
+            .content {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+            ☰
+        </button>
+        <div class="header-content">
+            <h1>Warehouse Productivity System</h1>
+            <div class="user-info">
+                {% if user.is_authenticated %}
+                    <span>👤 <strong>{{ user.username }}</strong></span>
+                    <span>({{ user.get_role_display }})</span>
+                    <span>|</span>
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="login/">Login</a> to continue
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <ul id="navMenu">
+            <li>
+                <a href="{% url 'dashboard' %}" 
+                   {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+                    📊 Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'entry_list' %}" 
+                   {% if request.resolver_match.url_name == 'entry_list' %}class="active"{% endif %}>
+                    📋 Entries
+                </a>
+            </li>
+            {% if user.is_superuser %}
+            <li>
+                <a href="{% url 'entry_add' %}" 
+                   {% if request.resolver_match.url_name == 'entry_add' %}class="active"{% endif %}>
+                    ➕ Add Entry
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="container">
+        <main class="content">
+            {% block content %}
+            <h2>Welcome to Warehouse Productivity</h2>
+            <p>Select an option from the navigation menu to get started.</p>
+            {% endblock %}
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; {% now "Y" %} Warehouse Productivity System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            const menuToggle = document.querySelector('.menu-toggle');
+            menu.classList.toggle('active');
+            
+            // Update icon
+            if (menu.classList.contains('active')) {
+                menuToggle.innerHTML = '✕';
+                menuToggle.setAttribute('aria-label', 'Close menu');
+            } else {
+                menuToggle.innerHTML = '☰';
+                menuToggle.setAttribute('aria-label', 'Toggle menu');
+            }
+        }
+
+        // Close menu when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const nav = document.querySelector('.nav');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const menu = document.getElementById('navMenu');
+            
+            if (window.innerWidth <= 768) {
+                if (!nav.contains(event.target) && !menuToggle.contains(event.target)) {
+                    menu.classList.remove('active');
+                    menuToggle.innerHTML = '☰';
+                    menuToggle.setAttribute('aria-label', 'Toggle menu');
+                }
+            }
+        });
+
+        // Auto-close menu after clicking a link on mobile
+        document.querySelectorAll('.nav a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    const menu = document.getElementById('navMenu');
+                    const menuToggle = document.querySelector('.menu-toggle');
+                    menu.classList.remove('active');
+                    menuToggle.innerHTML = '☰';
+                    menuToggle.setAttribute('aria-label', 'Toggle menu');
+                }
+            });
+        });
+
+        // Handle window resize
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                const menu = document.getElementById('navMenu');
+                const menuToggle = document.querySelector('.menu-toggle');
+                if (window.innerWidth > 768) {
+                    menu.classList.remove('active');
+                    menuToggle.innerHTML = '☰';
+                }
+            }, 250);
+        });
+    </script>
+</body>
+</html>
