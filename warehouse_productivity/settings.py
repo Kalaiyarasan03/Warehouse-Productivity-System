@@ -37,9 +37,9 @@ WSGI_APPLICATION = 'warehouse_productivity.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': 'etl',
+        'USER': 'root',
+        'PASSWORD': 'Mani414+++',
         'HOST': 'localhost',  # or your MySQL host
         'PORT': '3306',       # default MySQL port
         'OPTIONS': {

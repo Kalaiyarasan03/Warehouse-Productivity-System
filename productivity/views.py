@@ -85,7 +85,7 @@ class EntryListView(ListView):
 
         # Filters
         section = self.request.GET.get('section')
-        lead = self.request.GET.get('lead')
+        lead = self.request.GET.get('employee')
         date = self.request.GET.get('date')
 
         if section:
@@ -111,7 +111,7 @@ class EntryListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sections'] = Section.objects.all()
-        context['leads'] = User.objects.filter(role='lead')
+        context['leads'] = User.objects.filter(role='employee')
         # ✅ Pass today's date to the template for pre-filling the date filter input
         context['today'] = timezone.localdate()
         return context
